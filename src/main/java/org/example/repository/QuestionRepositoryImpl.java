@@ -4,6 +4,8 @@ import org.example.model.Question;
 import org.example.repository.dao.QuestionRepository;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class QuestionRepositoryImpl implements QuestionRepository {
     private static final String SELECT_All = "Select * from question where id = ?";
@@ -26,15 +28,16 @@ public class QuestionRepositoryImpl implements QuestionRepository {
                             WHERE  id = ?;
                                                 
                     """;
-    private Connection connection;
-
-    public QuestionRepositoryImpl() throws SQLException {
-        try {
-            this.connection = ConnectionData.getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    private final static String GET_ALL =
+            """
+                    SELECT * FROM "Question"
+            """;
+    private final static String GET_ALL_BY_TOPIC =
+            """
+                    SELECT * FROM "Question"
+                    WHERE topic_id = ?
+            """;
+    private final Connection connection = ConnectionData.getConnection();
 
     @Override
     public boolean save(Question question) {
@@ -43,7 +46,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
             preparedStatement.setString(1, question.getText());
             return preparedStatement.execute();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Can't save data");
         }
     }
 
@@ -55,7 +58,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
             resultSet.next();
             return Question.builder()
                     .text(resultSet.getString("text"))
-                    .topic_id(resultSet.getInt("id"))
+                    .topicId(resultSet.getInt("id"))
                     .build();
 
         } catch (SQLException e) {
@@ -64,7 +67,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
             }
-            throw new RuntimeException(e);
+            throw new RuntimeException("Can't get question by id");
         }
     }
 
@@ -75,7 +78,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
             preparedStatement.setInt(1, id);
             return preparedStatement.execute();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Can't remove question by id");
         }
     }
 
@@ -87,7 +90,44 @@ public class QuestionRepositoryImpl implements QuestionRepository {
             preparedStatement.setInt(2, question.getId());
             return preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Can't update data");
         }
+    }
+
+    @Override
+    public List<Question> getAll() {
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(GET_ALL);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            return getQuestions(resultSet);
+        } catch (SQLException e) {
+            throw new RuntimeException("Can't get all questions");
+        }
+    }
+
+    @Override
+    public List<Question> getAllByTopic(int topicId) {
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(GET_ALL_BY_TOPIC);
+            preparedStatement.setInt(1, topicId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            return getQuestions(resultSet);
+        } catch (SQLException e) {
+            throw new RuntimeException("Can't get all questions by topic where topic id: "  + topicId, e);
+        }
+    }
+    private List<Question> getQuestions(ResultSet resultSet) throws SQLException {
+        ArrayList<Question> questions = new ArrayList<>();
+        while (resultSet.next()) {
+            questions.add(getQuestion(resultSet));
+        }
+        return questions;
+    }
+    private Question getQuestion(ResultSet resultSet) throws SQLException {
+        return Question.builder()
+                .id(resultSet.getInt(1))
+                .text(resultSet.getString(2))
+                .topicId(resultSet.getInt(3))
+                .build();
     }
 }

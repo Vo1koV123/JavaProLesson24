@@ -11,7 +11,7 @@ public class ConnectionData {
     private static final String user = "postgres";
     private static final String password = "qwerty12";
 
-    public static Connection getConnection() throws SQLException {
+    public static Connection getConnection() {
         try {
             if (connection == null || connection.isClosed()) {
                 connection = DriverManager.getConnection(url, user, password);
@@ -19,7 +19,7 @@ public class ConnectionData {
             System.out.println("Connected");
             return connection;
         } catch (SQLException e){
-            throw new RuntimeException("Can't create connection", e);
+            throw new RuntimeException("Can't connection", e);
         }
 
     }

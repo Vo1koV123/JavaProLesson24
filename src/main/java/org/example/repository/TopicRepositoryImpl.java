@@ -27,16 +27,7 @@ public class TopicRepositoryImpl implements TopicRepository {
                             WHERE  id = ?;
                                                 
                     """;
-    private Connection connection;
-
-    public TopicRepositoryImpl(Connection connection) throws SQLException {
-        try {
-            this.connection = ConnectionData.getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    private Connection connection = ConnectionData.getConnection();
     @Override
     public boolean save(Topic topic) {
         try {
@@ -44,7 +35,7 @@ public class TopicRepositoryImpl implements TopicRepository {
             preparedStatement.setString(1, topic.getName());
             return preparedStatement.execute();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Can't save data");
         }
     }
 
@@ -58,14 +49,13 @@ public class TopicRepositoryImpl implements TopicRepository {
                     .name(resultSet.getString("name"))
                     .id(resultSet.getInt("id"))
                     .build();
-
         } catch (SQLException e) {
             try {
                 connection.close();
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
             }
-            throw new RuntimeException(e);
+            throw new RuntimeException("Can't get topic by id");
         }
     }
 
@@ -76,7 +66,7 @@ public class TopicRepositoryImpl implements TopicRepository {
             preparedStatement.setInt(1, id);
             return preparedStatement.execute();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Can't remove topic by id");
         }
     }
 
@@ -88,7 +78,7 @@ public class TopicRepositoryImpl implements TopicRepository {
             preparedStatement.setInt(2,topic.getId());
             return preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Can't update data");
         }
     }
 }
