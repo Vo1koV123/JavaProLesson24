@@ -14,7 +14,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
             """
                             INSERT INTO public."Question"(
                             text)
-                            VALUES (?)
+                            VALUES (?, ?)
                     """;
     private static final String REMOVE =
             """

@@ -21,7 +21,7 @@ public class Shell {
 
     public Runnable getRandomQuestionByTopicName() {
         return () -> {
-            System.out.println("Point a topic name from the list bellow");
+            System.out.println("Point a topic name");
             List<String> topicNames = questionService.getAll().stream()
                     .map(Question::getTopicId)
                     .filter(id -> id > 0)
@@ -51,7 +51,7 @@ public class Shell {
         return () -> {
             System.out.println("Enter a question");
             String enteredText = scanner.nextLine();
-            System.out.println("Point a topic name from the list bellow");
+            System.out.println("Point a topic name");
             topicService.getAll().stream()
                     .map(Topic::getName)
                     .forEach(System.out::println);
@@ -72,7 +72,7 @@ public class Shell {
 
     public Runnable removeQuestion() {
         return () -> {
-            System.out.println("Enter a question number to remove from the list bellow");
+            System.out.println("Enter a question number to remove");
             List<Question> questions = questionService.getAll();
             questions.forEach(q -> System.out.println(q.getId() + " " + q.getText()));
             int id = scanner.nextInt();
@@ -88,7 +88,7 @@ public class Shell {
 
     public Runnable getTopic() {
         return () -> {
-            System.out.println("Choose the topic name from the list bellow");
+            System.out.println("Choose the topic name");
             List<Topic> topics = topicService.getAll();
             topics.forEach(t -> System.out.println(t.getName()));
             String name = scanner.nextLine();
