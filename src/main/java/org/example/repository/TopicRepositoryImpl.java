@@ -1,9 +1,12 @@
 package org.example.repository;
 
+import org.example.exception.*;
 import org.example.model.Topic;
 import org.example.repository.dao.TopicRepository;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class TopicRepositoryImpl implements TopicRepository {
@@ -20,6 +23,7 @@ public class TopicRepositoryImpl implements TopicRepository {
                             WHERE id = ?
                                         
                     """;
+    private static final String GET_ALL = "SELECT * FROM topic";
     private static final String UPDATE =
             """
                             UPDATE public."Topic"
@@ -29,13 +33,18 @@ public class TopicRepositoryImpl implements TopicRepository {
                     """;
     private Connection connection = ConnectionData.getConnection();
     @Override
-    public boolean save(Topic topic) {
+    public Topic save(Topic topic) {
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(SAVE);
+            PreparedStatement preparedStatement = connection.prepareStatement(SAVE,
+                    Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, topic.getName());
-            return preparedStatement.execute();
+            preparedStatement.execute();
+            ResultSet resultSet = preparedStatement.getGeneratedKeys();
+            resultSet.next();
+            topic.setId(resultSet.getInt(1));
+            return topic;
         } catch (SQLException e) {
-            throw new RuntimeException("Can't save data");
+            throw new SaveDataException("Can't save data " + topic, e);
         }
     }
 
@@ -55,7 +64,7 @@ public class TopicRepositoryImpl implements TopicRepository {
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
             }
-            throw new RuntimeException("Can't get topic by id");
+            throw new GetDataException("Can't get topic by id: " + id, e);
         }
     }
 
@@ -66,7 +75,7 @@ public class TopicRepositoryImpl implements TopicRepository {
             preparedStatement.setInt(1, id);
             return preparedStatement.execute();
         } catch (SQLException e) {
-            throw new RuntimeException("Can't remove topic by id");
+            throw new RemoveDataException("Can't remove topic by id: " + id, e);
         }
     }
 
@@ -78,7 +87,25 @@ public class TopicRepositoryImpl implements TopicRepository {
             preparedStatement.setInt(2,topic.getId());
             return preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Can't update data");
+            throw new UpdateDataException("Can't update data " + topic, e);
+        }
+    }
+
+    @Override
+    public List<Topic> getAll() {
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(GET_ALL);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            ArrayList<Topic> topics = new ArrayList<>();
+            while (resultSet.next()) {
+                topics.add(Topic.builder()
+                        .id(resultSet.getInt(1))
+                        .name(resultSet.getString(2))
+                        .build());
+            }
+            return topics;
+        } catch (SQLException e) {
+            throw new GetAllDataException("Can't get all topics: ", e);
         }
     }
 }

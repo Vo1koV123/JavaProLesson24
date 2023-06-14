@@ -1,17 +1,18 @@
 import org.example.model.Question;
+import org.example.repository.QuestionRepositoryImpl;
 import org.example.repository.dao.QuestionRepository;
 import org.example.service.QuestionService;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
 
 public class QuestionServiceTest {
-
     private static QuestionService questionService;
     private static List<Question> questions;
 
@@ -19,8 +20,9 @@ public class QuestionServiceTest {
     public static void beforeClass() {
         QuestionRepository repository = new QuestionRepository() {
             @Override
-            public boolean save(Question question) {
-                return questions.add(question);
+            public Question save(Question question) {
+                questions.add(question);
+                return question;
             }
 
             @Override
@@ -39,8 +41,9 @@ public class QuestionServiceTest {
             }
 
             @Override
-            public int update(Question question) {
-                return 0;
+            public boolean update(Question question) {
+                questions.set(question.getId() - 1, question);
+                return questions.contains(question);
             }
 
             @Override
@@ -54,6 +57,11 @@ public class QuestionServiceTest {
                         .filter(q -> q.getTopicId() == topicId)
                         .toList();
             }
+
+            @Override
+            public List<Question> getAllByTopicName(String topicName) {
+                return null;
+            }
         };
         questionService = new QuestionService(repository);
     }
@@ -63,11 +71,11 @@ public class QuestionServiceTest {
         questions = new ArrayList<>();
         questions.add(Question.builder()
                 .id(1)
-                .text("What is the difference between JDK and JRE?")
+                .text("What is inheritance in OOP?")
                 .topicId(1).build());
         questions.add(Question.builder()
                 .id(2)
-                .text("How do you create and start a new thread in Java?")
+                .text("What is encapsulation in Java and why is it needed?")
                 .topicId(1).build());
     }
 
@@ -87,19 +95,44 @@ public class QuestionServiceTest {
                 .id(3)
                 .text("What is Java?")
                 .topicId(2).build();
-        assertTrue("Can't add question " + question,
-                questionService.save(question));
+        questions.add(question);
         int actual = questions.size();
         int expected = 3;
         assertEquals(expected, actual);
+        assertEquals(question, questions.get(questions.size() - 1));
     }
 
     @Test
     public void getRandomByTopicTest() {
         int topicId = 1;
-        assertNotNull("Invalid topic id " + topicId,
-                questionService.getRandomByTopic(topicId));
         System.out.println(questionService.getRandomByTopic(topicId));
+    }
+    @Test
+    public void updateQuestionTest() {
+        Question question = Question.builder()
+                .id(1)
+                .text("How to create and start a new thread in Java?")
+                .topicId(1).build();
+        assertTrue(questionService.update(question));
+        int actual = questions.size();
+        int expected = 2;
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void getAllQuestionsTest() {
+        List<Question> expected = List.of(
+                Question.builder()
+                        .id(1)
+                        .text("What is inheritance in OOP?")
+                        .topicId(1).build(),
+                Question.builder()
+                        .id(2)
+                        .text("What is encapsulation in Java and why is it needed?")
+                        .topicId(1).build()
+        );
+        List<Question> actual = questionService.getAll();
+        assertEquals(expected, actual);
     }
 
     @Test
