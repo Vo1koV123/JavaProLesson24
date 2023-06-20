@@ -12,12 +12,14 @@ public class TopicService {
     public TopicService(TopicRepository topicRepository) {
         this.topicRepository = topicRepository;
     }
-    public boolean save(Topic topic) {
+    public Topic save(Topic topic) {
         return topicRepository.save(topic);
     }
 
     public Topic get(int id) {
         return topicRepository.get(id);
     }
-
+    public List<Topic> getAll() {
+        return topicRepository.getAll();
+    }
 }

@@ -13,26 +13,32 @@ public class QuestionService {
     public QuestionService(QuestionRepository questionRepository) {
         this.questionRepository = questionRepository;
     }
-    public boolean save(Question question) {
+    public Question save(Question question) {
         return questionRepository.save(question);
     }
 
-    public List<Question> getAllQuestions() {
+    public List<Question> getAll() {
         return questionRepository.getAll();
     }
 
+    private Question getRandomQuestion(List<Question> questions) {
+        int randomValue = new Random().nextInt(questions.size());
+        return questions.get(randomValue);
+    }
+
     public Question getRandom() {
-        List<Question> all = questionRepository.getAll();
-        int randomValue = new Random().nextInt(all.size());
-        return all.get(randomValue);
+        return getRandomQuestion(questionRepository.getAll());
     }
-
     public Question getRandomByTopic(int topicId) {
-        List<Question> allBYTopic = questionRepository.getAllByTopic(topicId);
-        int randomValue = new Random().nextInt(allBYTopic.size());
-        return allBYTopic.get(randomValue);
+        return getRandomQuestion(questionRepository.getAllByTopic(topicId));
     }
 
+    public Question getRandomByTopicName(String topicName) {
+        return getRandomQuestion(questionRepository.getAllByTopicName(topicName));
+    }
+    public boolean update(Question question) {
+        return questionRepository.update(question);
+    }
     public boolean remove(int id) {
         return questionRepository.remove(id);
     }

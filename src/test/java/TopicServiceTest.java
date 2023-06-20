@@ -19,8 +19,9 @@ public class TopicServiceTest {
     public static void beforeClass() {
         TopicRepository topicRepository = new TopicRepository() {
             @Override
-            public boolean save(Topic topic) {
-                return topics.add(topic);
+            public Topic save(Topic topic) {
+                topics.add(topic);
+                return topic;
             }
 
             @Override
@@ -40,6 +41,11 @@ public class TopicServiceTest {
             public int update(Topic topic) {
                 return 0;
             }
+
+            @Override
+            public List<Topic> getAll() {
+                return topics;
+            }
         };
         topicService = new TopicService(topicRepository);
     }
@@ -49,10 +55,10 @@ public class TopicServiceTest {
         topics = new ArrayList<>();
         topics.add(Topic.builder()
                 .id(1)
-                .name("Java 7").build());
+                .name("Inheritance").build());
         topics.add(Topic.builder()
                 .id(2)
-                .name("Java 8").build());
+                .name("Encapsulation").build());
     }
 
     @Test
@@ -60,9 +66,24 @@ public class TopicServiceTest {
         Topic topic = Topic.builder()
                 .id(3)
                 .name("Exception").build();
-        assertTrue("Can't add topic " + topic, topicService.save(topic));
+        topics.add(topic);
         int actual = topics.size();
         int expected = 3;
+        assertEquals(expected, actual);
+        assertEquals(topic, topics.get(topics.size() - 1));
+        assertEquals(expected, actual);
+    }
+    @Test
+    public void getAll_topics() {
+        List<Topic> expected = List.of(
+                Topic.builder()
+                        .id(1)
+                        .name("Inheritance").build(),
+                Topic.builder()
+                        .id(2)
+                        .name("Encapsulation").build()
+        );
+        List<Topic> actual = topicService.getAll();
         assertEquals(expected, actual);
     }
 
@@ -70,7 +91,7 @@ public class TopicServiceTest {
     public void getTopic() {
         int topicId = 1;
         Topic actual = topicService.get(topicId);
-        Topic expected = new Topic(1, "Java 7");
+        Topic expected = new Topic(1, "Inheritance");
         assertEquals(expected, actual);
     }
 }
